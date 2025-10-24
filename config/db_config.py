@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine, BigInteger, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship, declarative_base
 
+from config import bot_config
+
 engine = create_engine('postgresql://postgres:12345@localhost:5432/postgres')
 Base = declarative_base()
 
@@ -25,3 +27,6 @@ class Note(Base):
 
 def create_database():
     Base.metadata.create_all(engine)
+
+# Для запуска нужно быть в корне проета и ввести для запуска 
+# python3 -m config.bot_config
