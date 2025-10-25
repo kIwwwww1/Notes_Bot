@@ -24,6 +24,12 @@ class Note(Base):
     tg_id: Mapped[int] = mapped_column(ForeignKey('users.tg_id'), nullable=False)
     note: Mapped[str] = mapped_column(String(500), nullable=False)
     adding_time: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    # remind_in: Mapped[datetime] = mapped_column(DateTime)
+    # remind_every_day: Mapped[bool] = mapped_column(default=False)
+
+
+    # Добавить возможность указать через сколько минут или конкретное время (день, час, минуты)
+    # Добавить возможность напоминать каждый день
 
     user: Mapped['User'] = relationship('User')
 

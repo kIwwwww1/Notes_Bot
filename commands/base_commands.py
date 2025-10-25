@@ -8,7 +8,7 @@ from datetime import datetime
 # 
 from config.db_config import engine, User, Note
 from keyboards.reply_kb import keyboard_add_note, keyboard_text
-from keyboards.inline_kb import yes_or_no
+from keyboards.inline_kb import yes_or_no, detail_note, new_detail_note
 
 user_router = Router()
 
@@ -71,12 +71,22 @@ async def user_notes(message: types.Message):
     try:
         with Session(engine) as session:
             user = session.query(User).filter_by(tg_id=message.from_user.id).first()
-            user_notes = [i.note for i in user.notes]
-
-            for user_note in user.notes:
-                await message.answer(
-                    f'{user_note.note}\n\n{user_note.adding_time.strftime(f'%H:%M | %Y-%m-%d')}'
-                )
+            user_notes = [i for i in user.notes]
+            # for user_note in user_notes:
+            #     await message.answer(f'{user_note.note[:15].strip()} . . .\n\n{user_note.adding_time.strftime(f'%H:%M | %Y-%m-%d')}')
+            len_page = 3
+            start_index = 0
+            while True:
+                end_index = start_index + len_page
+                for user_note in user_notes[start_index:end_index]:
+                    if user_note:
+                        await message.answer(f'{user_note.note[:15].strip()} . . .\n\n{user_note.adding_time.strftime(f'%H:%M | %Y-%m-%d')}', 
+                                            reply_markup=detail_note)
+                        start_index += end_index
+                    if end_index >= len(user_notes):
+                        await message.answer('Все эл выведены 2')
+                        break
+                    
     except Exception as e:
         await message.answer(f'Произошла ошибка {e}')
 
