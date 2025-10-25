@@ -72,7 +72,6 @@ async def user_notes(message: types.Message):
         with Session(engine) as session:
             user = session.query(User).filter_by(tg_id=message.from_user.id).first()
             user_notes = [i.note for i in user.notes]
-            while True:
 
             for user_note in user.notes:
                 await message.answer(
