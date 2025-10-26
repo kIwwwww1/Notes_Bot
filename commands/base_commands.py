@@ -13,6 +13,7 @@ from keyboards.inline_kb import yes_or_no, detail_note, new_detail_note
 user_router = Router()
 
 note_for_add = []
+all_user_notes = []
 
 class AwaitNote(StatesGroup):
     user_note = State()
@@ -25,12 +26,12 @@ async def command_start(message: types.Message):
     try:
         with Session(engine) as session:
             user = session.query(User).filter_by(tg_id=user_id).first()
-            if user is None:
-                user = session.add(User(tg_id=user_id, first_name=user_first_name))
-                session.commit()
-                await message.answer(f'Привет {user_first_name}!', reply_markup=keyboard_add_note)
-            else:
-                await message.answer(f'И сново привет {user_first_name}', reply_markup=keyboard_add_note)
+        if user is None:
+            user = session.add(User(tg_id=user_id, first_name=user_first_name))
+            session.commit()
+            await message.answer(f'Привет {user_first_name}!', reply_markup=keyboard_add_note)
+        else:
+            await message.answer(f'И сново привет {user_first_name}', reply_markup=keyboard_add_note)
     except Exception as e:
         await message.answer('Произошла ошибка')
 
@@ -52,7 +53,6 @@ async def await_yes_add(callback: types.CallbackQuery):
     try:
         with Session(engine) as session:
             session.add(Note(tg_id=callback.from_user.id, note=note_for_add[0]))
-            session.commit()
             await callback.answer('Ваша заметка добавлена')
             await callback.message.chat.delete_message(message_id=callback.message.message_id)
             note_for_add.clear()
@@ -72,21 +72,19 @@ async def user_notes(message: types.Message):
         with Session(engine) as session:
             user = session.query(User).filter_by(tg_id=message.from_user.id).first()
             user_notes = [i for i in user.notes]
-            # for user_note in user_notes:
-            #     await message.answer(f'{user_note.note[:15].strip()} . . .\n\n{user_note.adding_time.strftime(f'%H:%M | %Y-%m-%d')}')
-            len_page = 3
-            start_index = 0
-            while True:
-                end_index = start_index + len_page
-                for user_note in user_notes[start_index:end_index]:
-                    if user_note:
-                        await message.answer(f'{user_note.note[:15].strip()} . . .\n\n{user_note.adding_time.strftime(f'%H:%M | %Y-%m-%d')}', 
-                                            reply_markup=detail_note)
-                        start_index += end_index
-                    if end_index >= len(user_notes):
-                        await message.answer('Все эл выведены 2')
-                        break
-                    
+        print('Сессия закрыта')
+        len_page = 3
+        start_index = 0
+        while True:
+            end_index = start_index + len_page
+            for user_note in user_notes[start_index:end_index]:
+                user_note_message = f'{user_note.note[:15].strip()} . . .\n\n{user_note.adding_time.strftime(f'%H:%M | %Y-%m-%d')}'
+                await message.answer(user_note_message, reply_markup=detail_note)
+                if end_index >= len(user_notes):
+                    await message.answer('Все заметки!')
+                    break
+                start_index += end_index
+            break
     except Exception as e:
         await message.answer(f'Произошла ошибка {e}')
 

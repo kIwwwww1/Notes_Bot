@@ -14,7 +14,7 @@ class User(Base):
     tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
 
-    notes: Mapped[List['Note']] = relationship('Note', uselist=True)
+    notes: Mapped[List['Note']] = relationship('Note', uselist=True, cascade='all, delete-orphan')
 
 
 class Note(Base):
